@@ -4,8 +4,10 @@ import { useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import Head from 'next/head';
 import { useMerchant } from '../../hooks/useMerchant';
+import useDynamicFavicon from '../../hooks/useDynamicFavicon';
 import { useUser } from '../../hooks/useUser';
 import { usePayment } from '../../hooks/usePayment';
+import { config } from '../../lib/config';
 import HeaderBar from '../../components/HeaderBar';
 import FooterBar from '../../components/FooterBar';
 import CPFForm from '../../components/CPFForm';
@@ -23,6 +25,10 @@ export default function SlugPage() {
 
   // Custom hooks for state management
   const { merchant, rewards, loading: merchantLoading, error: merchantError } = useMerchant(slug);
+  
+  // Dynamic favicon based on merchant logo - using hook that worked before
+  useDynamicFavicon(merchant ? slug : undefined);
+  
   const { 
     user, 
     coupons, 
