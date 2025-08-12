@@ -2,25 +2,26 @@
 export const config = {
   aws: {
     // AWS Cognito Identity Pool (para autenticação anônima)
-    identityPoolId: process.env.NEXT_PUBLIC_AWS_IDENTITY_POOL_ID || 'sa-east-1:172a31b0-a1a0-44d1-94ee-6d16b1666898',
+    identityPoolId: process.env.NEXT_PUBLIC_AWS_IDENTITY_POOL_ID!,
     region: 'sa-east-1',
   },
   api: {
     // GraphQL API (AppSync) - agora usa Cognito em vez de API Key
-    graphqlUrl: process.env.NEXT_PUBLIC_GRAPHQL_API_URL || '',
-    // Payment API (REST - ainda não migrado)
-    paymentUrl: process.env.NEXT_PUBLIC_PAYMENT_API_URL || 'https://vrdyhhd33zkot366iwnapknwbu0jmbqf.lambda-url.sa-east-1.on.aws/',
+    graphqlUrl: process.env.NEXT_PUBLIC_GRAPHQL_API_URL!,
+    graphqlApiId: process.env.NEXT_PUBLIC_GRAPHQL_API_ID!,
+    // Payment API (REST)
+    paymentUrl: process.env.NEXT_PUBLIC_PAYMENT_API_URL!,
   },
   app: {
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'Tevora Link',
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'Pixman',
     version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   },
   cdn: {
     cloudfront: {
-      baseUrl: 'https://d1ha8p5njs0erj.cloudfront.net',
+      baseUrl: process.env.NEXT_PUBLIC_CLOUDFRONT_BASE_URL!,
       images: {
-        cover: (slug: string) => `https://d1ha8p5njs0erj.cloudfront.net/cover_${slug}.jpg`,
-        logo: (slug: string) => `https://d1ha8p5njs0erj.cloudfront.net/logo_${slug}.jpg`,
+        cover: (slug: string) => `${process.env.NEXT_PUBLIC_CLOUDFRONT_BASE_URL}/cover_${slug}.jpg`,
+        logo: (slug: string) => `${process.env.NEXT_PUBLIC_CLOUDFRONT_BASE_URL}/logo_${slug}.jpg`,
       }
     }
   },

@@ -12,7 +12,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="text-center">
           <p className="text-sm text-gray-500 mb-2">
-            Powered by Tevora Link
+            Powered by Pixman
           </p>
           <p className="text-xs text-gray-400">
             © 2025 - Sistema de cupons digitais

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Tevora Link Site",
+  title: "Pixman",
   description: "Site responsivo para acesso via QR Code.",
 };
 

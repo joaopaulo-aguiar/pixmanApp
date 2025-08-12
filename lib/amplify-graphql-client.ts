@@ -38,6 +38,9 @@ export class AmplifyGraphQLClient {
     variables?: Record<string, any>
   ): Promise<T> {
     try {
+      // Try different auth modes for debugging
+      console.log('🔐 Attempting GraphQL request with identityPool auth...');
+      
       const result = await this.client.graphql({
         query,
         variables: variables as any || {},
@@ -46,6 +49,7 @@ export class AmplifyGraphQLClient {
 
       if (result.errors && result.errors.length > 0) {
         const error = result.errors[0];
+        console.error('GraphQL Error:', error);
         throw new GraphQLError(
           error.message || 'GraphQL error',
           'API',
@@ -53,8 +57,11 @@ export class AmplifyGraphQLClient {
         );
       }
 
+      console.log('✅ GraphQL request successful');
       return result.data as T;
     } catch (error) {
+      console.error('🚨 GraphQL request failed:', error);
+      
       if (error instanceof GraphQLError) {
         throw error;
       }
@@ -66,6 +73,9 @@ export class AmplifyGraphQLClient {
         }
         if (error.message.includes('Network') || error.message.includes('fetch')) {
           throw new GraphQLError('Network error', 'NETWORK', undefined, error);
+        }
+        if (error.message.includes('Unauthorized') || error.message.includes('401')) {
+          throw new GraphQLError('Authentication failed - check Cognito Identity Pool permissions', 'UNAUTHORIZED', undefined, error);
         }
         throw new GraphQLError(error.message, 'API', undefined, error);
       }
