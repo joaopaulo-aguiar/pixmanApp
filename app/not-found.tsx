@@ -1,7 +1,6 @@
-
 "use client";
 
-export default function Home() {
+export default function NotFound() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
@@ -21,21 +20,37 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="text-center max-w-md">
-          <div className="w-24 h-24 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center">
-            <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+          <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+            <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
           
           <h1 className="text-3xl font-bold text-slate-900 mb-4">
-            Acesso via QR Code
+            Página não encontrada
           </h1>
           
           <p className="text-slate-600 mb-8 leading-relaxed">
-            Para acessar seus cupons digitais, escaneie o QR Code disponível no estabelecimento ou clique no link recebido.
+            A página que você está procurando não existe ou foi removida.
           </p>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="space-y-4">
+            <button
+              onClick={() => window.history.back()}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              Voltar
+            </button>
+            
+            <a
+              href="/"
+              className="block w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              Ir para página inicial
+            </a>
+          </div>
+
+          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,9 +58,9 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-blue-900 mb-1">Como funciona?</h3>
+                <h3 className="font-semibold text-blue-900 mb-1">Procurando seus cupons?</h3>
                 <p className="text-blue-700 text-sm">
-                  Cada estabelecimento possui um QR Code único que direciona para esta página com seus cupons exclusivos.
+                  Escaneie o QR Code disponível no estabelecimento para acessar seus cupons digitais.
                 </p>
               </div>
             </div>
