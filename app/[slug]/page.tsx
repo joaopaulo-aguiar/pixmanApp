@@ -209,18 +209,18 @@ export default function SlugPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header - Simplified for hero section */}
       <HeaderBar 
-        merchantName={step === "cpf" ? undefined : merchant?.displayName} // Remove nome na tela inicial
-        userEmail={user?.email}
-        showBackButton={step !== "cpf"}
+        merchantName={(step === "cpf" || step === 'result') ? undefined : merchant?.displayName}
+        userEmail={(step === "cpf" || step === 'result') ? undefined : user?.email}
+        showBackButton={step !== "cpf" && step !== 'result'}
         onBack={() => {
           if (step === "email") setStep("cpf");
           if (step === "result") resetUser();
         }}
-        className={step === "cpf" ? "bg-transparent border-0 absolute top-0 left-0 right-0 z-10 text-white" : ""}
+        className={(step === "cpf" || step === 'result') ? "bg-transparent border-0 absolute top-0 left-0 right-0 z-10 text-white" : ""}
       />
 
       {/* Hero Section - Only show on CPF step */}
-      {step === "cpf" && merchant && (
+  {(step === "cpf" || step === 'result') && merchant && (
         <MerchantHero merchant={merchant} />
       )}
 
@@ -325,24 +325,7 @@ export default function SlugPage() {
 
           {/* Results Step - User Coupons */}
           {!paymentData && step === "result" && user && (
-            <div className="space-y-6">
-              {/* Welcome section */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h1 className="text-2xl font-semibold text-slate-900 mb-2">
-                    Olá!
-                  </h1>
-                  <p className="text-slate-600">
-                    {user.email}
-                  </p>
-                </div>
-              </div>
-
+            <div className="space-y-6 -mt-8">
               {/* Coupons list */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <CouponList

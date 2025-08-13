@@ -101,23 +101,22 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
 
         {isActive && presenting && (
           <div className="mt-4 bg-white/12 rounded-lg p-4 backdrop-blur-sm border border-white/20">
-            <div className="text-center mb-3">
+            <div className="text-center mb-4">
               <p className="text-[10px] uppercase tracking-wide text-white/70 font-semibold mb-1">Código</p>
-              <div className="bg-white/20 rounded-md px-3 py-4 border border-white/30">
-                <span className="font-mono text-3xl font-bold tracking-widest drop-shadow-sm">{coupon.couponCode}</span>
+              <div className="bg-white/15 rounded-md px-3 py-3 border border-white/25 inline-block">
+                <span className="font-mono text-2xl font-bold tracking-widest drop-shadow-sm">{coupon.couponCode}</span>
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-white/85">
-              <div className="inline-flex items-center gap-1 bg-black/25 rounded-full px-3 py-1">
+            <div className="flex flex-col items-center gap-2">
+              <div className="inline-flex items-center gap-2 bg-black/25 rounded-full px-4 py-1 text-[11px] text-white/85">
                 <span className="font-medium">Válido hoje até 23:59</span>
+                <span className="w-px h-4 bg-white/30"></span>
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
+                  {remaining}
+                </span>
               </div>
-              <div className="inline-flex items-center gap-1 bg-black/25 rounded-full px-3 py-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
-                {remaining}
-              </div>
-              <div className="inline-flex items-center gap-1 bg-black/25 rounded-full px-3 py-1">
-                <span className="font-mono text-[10px] tracking-tight">{extractVerificationCode(coupon.SK)}</span>
-              </div>
+              <div className="font-mono text-[10px] tracking-tight text-white/75">{extractVerificationCode(coupon.SK)}</div>
             </div>
           </div>
         )}
