@@ -325,7 +325,13 @@ export default function SlugPage() {
 
           {/* Results Step - User Coupons */}
           {!paymentData && step === "result" && user && (
-            <div className="space-y-6 -mt-8">
+            <div className="space-y-6 pt-4">
+              {/* Welcome inline banner */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
+                <h2 className="text-base font-semibold text-slate-800 mb-1">Olá, <span className="text-orange-600 break-all">{user.email}</span>!</h2>
+                <p className="text-xs text-slate-500">Veja e gerencie seus cupons abaixo.</p>
+              </div>
+
               {/* Coupons list */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <CouponList
@@ -359,17 +365,18 @@ export default function SlugPage() {
                       alert('Para comprar cupons, faça login primeiro.');
                     }
                   }}
+                  onRefresh={() => { if (user && merchant) fetchUserCoupons(user.cpf, merchant.slug); }}
                 />
               </div>
 
-              {/* Quick action to consult another CPF */}
+        {/* Exit */}
               <div className="text-center">
                 <Button
                   variant="secondary"
                   onClick={resetUser}
                   className="w-full"
                 >
-                  Consultar outro CPF
+          Sair
                 </Button>
               </div>
             </div>

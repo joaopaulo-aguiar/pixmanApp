@@ -63,7 +63,13 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
 
   // Basic vs premium color heuristic
   const isPremium = /10|15|20|25|30/.test(programName);
-  const ticketColor = isPremium ? 'bg-orange-700' : 'bg-orange-600';
+  const isInactive = coupon.status !== 'ACTIVE' && coupon.status !== 'AVAILABLE';
+  const isBlockedAvailable = !isInactive && coupon.status === 'AVAILABLE' && disabled;
+  const ticketColor = isInactive
+    ? 'bg-slate-700'
+    : (isBlockedAvailable
+        ? (isPremium ? 'bg-gradient-to-br from-slate-600 to-slate-700' : 'bg-gradient-to-br from-slate-500 to-slate-600')
+        : (isPremium ? 'bg-orange-700' : 'bg-orange-600'));
 
   const handleActivate = () => {
     if (disabled || isActive || !onActivate) return;
@@ -84,14 +90,14 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
         <div className="absolute inset-1 rounded-lg border-2 border-dashed border-white/70 pointer-events-none"></div>
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase font-semibold tracking-wide text-white/80">{isActive ? 'CUPOM ATIVO' : 'CUPOM'}</span>
+            <span className="text-[10px] uppercase font-semibold tracking-wide text-white/80">{isActive ? 'CUPOM ATIVO' : (isInactive ? 'CUPOM INATIVO' : 'CUPOM')}</span>
             {isActive && (
               <span className="inline-flex items-center gap-1 bg-white/15 rounded-full px-2 py-0.5 text-[10px] font-medium">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                 Hoje
               </span>
             )}
-            {!isActive && disabled && (
+            {!isActive && !isInactive && isBlockedAvailable && (
               <span className="inline-flex items-center gap-1 bg-black/25 rounded-full px-2 py-0.5 text-[10px] font-medium text-white/80">Bloqueado hoje</span>
             )}
           </div>

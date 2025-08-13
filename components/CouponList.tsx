@@ -14,6 +14,7 @@ interface CouponListProps {
   onPurchaseMore?: (rewardProgram?: Reward) => void;
   activatingCouponSK?: string | null;
   className?: string;
+  onRefresh?: () => void;
 }
 
 interface GroupedProgram {
@@ -34,6 +35,7 @@ export const CouponList: React.FC<CouponListProps> = ({
   onPurchaseMore,
   activatingCouponSK,
   className = "",
+  onRefresh,
 }) => {
   // Group coupons per program (ACTIVE + AVAILABLE)
   const groupedPrograms: GroupedProgram[] = useMemo(() => {
@@ -78,7 +80,32 @@ export const CouponList: React.FC<CouponListProps> = ({
     );
   }
 
-  const anyCoupons = groupedPrograms.some(p => p.coupons.length > 0);
+  const anyCoupons = coupons.length > 0;
+
+  // Flatten and sort coupons across programs for global priority
+  // Build a flat list with program references
+  const flat = groupedPrograms.flatMap(g => g.coupons.map(c => ({ coupon: c, program: g })));
+  const order = (c: Coupon, program: GroupedProgram) => {
+    const active = program.coupons.find(x => x.status === 'ACTIVE');
+    const blocked = c.status === 'AVAILABLE' && active && active.SK !== c.SK;
+    if (c.status === 'ACTIVE') return 0;
+    if (c.status === 'AVAILABLE' && !blocked) return 1;
+    if (blocked) return 2;
+    return 3; // inactive
+  };
+  flat.sort((a,b) => {
+    const diff = order(a.coupon, a.program) - order(b.coupon, b.program);
+    if (diff !== 0) return diff;
+    const at = a.coupon.createdAt ? new Date(a.coupon.createdAt).getTime() : 0;
+    const bt = b.coupon.createdAt ? new Date(b.coupon.createdAt).getTime() : 0;
+    return bt - at;
+  });
+  // Build a quick lookup for active coupons per program for disabled logic after flattening
+  const activeByProgram: Record<string, string | undefined> = {};
+  groupedPrograms.forEach(g => {
+    const active = g.coupons.find(c => c.status === 'ACTIVE');
+    if (active) activeByProgram[g.id] = active.SK;
+  });
 
   // Determine which programs user can still purchase (no coupons of that program at all)
   const purchasablePrograms = rewardPrograms.filter(r => {
@@ -89,46 +116,37 @@ export const CouponList: React.FC<CouponListProps> = ({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <div className="mb-2">
+      <div className="mb-2 flex items-center justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900">Seus cupons</h2>
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md px-3 py-1 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6M5 19A9 9 0 0119 5M5 5a9 9 0 0114 14" /></svg>
+            Atualizar
+          </button>
+        )}
       </div>
 
-      {/* List all coupons individually grouped visually by program (program title separators) */}
-      {groupedPrograms.length === 0 || !anyCoupons ? (
+      {/* Flat globally ordered list of coupons */}
+      {!anyCoupons ? (
         <div className="text-center text-sm text-slate-600">Você ainda não possui cupons.</div>
       ) : (
-        <div className="space-y-8">
-      {groupedPrograms.filter(g => g.coupons.length > 0).map(program => {
-            // Determine if there is an ACTIVE for this program
-            const active = program.coupons.find(c => c.status === 'ACTIVE');
-            return (
-              <div key={program.id} className="space-y-3">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {program.coupons
-                    .sort((a,b) => {
-                      // Active first, then by created desc
-                      if (a.status === 'ACTIVE' && b.status !== 'ACTIVE') return -1;
-                      if (b.status === 'ACTIVE' && a.status !== 'ACTIVE') return 1;
-                      const at = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                      const bt = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                      return bt - at;
-                    })
-                    .map(coupon => (
-                      <CouponTicket
-                        key={coupon.SK}
-                        coupon={coupon}
-                        programName={program.programName}
-                        programRule={program.programRule}
-                        merchantLogo={merchantLogo}
-                        disabled={!!active && active.SK !== coupon.SK && coupon.status === 'AVAILABLE'}
-                        isActivating={activatingCouponSK === coupon.SK}
-                        onActivate={async (c) => { if (onActivateCoupon) await onActivateCoupon(c); }}
-                      />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid gap-4 md:grid-cols-2">
+          {flat.map(({ coupon, program }) => (
+            <CouponTicket
+              key={coupon.SK}
+              coupon={coupon}
+              programName={program.programName}
+              programRule={program.programRule}
+              merchantLogo={merchantLogo}
+              disabled={!!activeByProgram[program.id] && activeByProgram[program.id] !== coupon.SK && coupon.status === 'AVAILABLE'}
+              isActivating={activatingCouponSK === coupon.SK}
+              onActivate={async (c) => { if (onActivateCoupon) await onActivateCoupon(c); }}
+            />
+          ))}
         </div>
       )}
 
