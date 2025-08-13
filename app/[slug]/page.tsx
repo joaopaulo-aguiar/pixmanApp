@@ -335,7 +335,7 @@ export default function SlugPage() {
                     </svg>
                   </div>
                   <h1 className="text-2xl font-semibold text-slate-900 mb-2">
-                    Olá! 👋
+                    Olá!
                   </h1>
                   <p className="text-slate-600">
                     {user.email}

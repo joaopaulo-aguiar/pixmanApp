@@ -25,19 +25,35 @@ function getBgClasses(rank: number, total: number) {
   return 'bg-orange-300/60 border-orange-300';
 }
 
+// Cores sólidas do ticket (escala de intensidade)
+// Apenas dois tipos de cupom: básico (mais barato) e premium (mais caro)
+function getTicketColor(isPremium: boolean) {
+  return isPremium ? 'bg-orange-700' : 'bg-orange-600';
+}
+
 export default function RewardProgramCard({ reward, index, total, onSelect }: RewardProgramCardProps) {
   const price = typeof reward.price === 'number' ? reward.price : parseFloat(reward.price || '0');
-  const bg = getBgClasses(index, total);
+  const bg = 'bg-white border-slate-200'; // container neutro agora
+  const ticketColor = getTicketColor(index === total - 1 && total > 1); // último é o mais caro após ordenação
   const qty = Number(reward.quantity) || 1;
   return (
-    <div className={`relative rounded-xl border p-2 flex flex-col text-[11px] leading-tight ${bg}`}>
-      <div className="flex items-center mb-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/80 text-orange-700 font-semibold text-[10px] tracking-wide shadow-sm">
-          {qty} {qty === 1 ? 'Cupom' : 'Cupons'}
-        </span>
+    <div className={`relative rounded-2xl border p-3 flex flex-col text-[11px] leading-tight ${bg}`}>
+      {/* Ticket sólido */}
+      <div className="relative mb-3">
+        <div className={`relative mx-auto ${ticketColor} rounded-xl px-4 py-4 text-center shadow-sm text-white overflow-hidden`}> 
+          {/* Overlay de contraste suave */}
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0))]"></div>
+          {/* Borda tracejada interna levemente inset */}
+          <div className="absolute inset-1 rounded-lg border-2 border-dashed border-white/70 pointer-events-none"></div>
+          <div className="text-[10px] uppercase tracking-wide font-semibold text-white/90 mb-1">CUPOM</div>
+          <div className="text-[18px] font-extrabold leading-none mb-2 drop-shadow-sm">
+            {reward.reward}
+          </div>
+          <div className="text-[11px] leading-snug font-normal text-white/95 mx-auto max-w-[180px]">
+            {reward.programRule}
+          </div>
+        </div>
       </div>
-      <div className="font-semibold text-[14px] text-slate-900">Cupom: {reward.reward}</div>
-      <div className="text-[11px] text-slate-600">{reward.programRule}</div>
       <div className="mt-3 mb-3">
         <Button
           type="button"
@@ -49,7 +65,7 @@ export default function RewardProgramCard({ reward, index, total, onSelect }: Re
           <span className="text-[10px] font-normal leading-none">pagamento por pix</span>
         </Button>
       </div>
-      <div className="text-[10px] text-slate-600 mt-auto">Compre 1 cupom e receba {qty} cupons para utilização em dias diferentes.</div>
+  <div className="text-[12px] text-slate-600 mt-auto">Compre 1 e receba {qty} cupons para utilização em dias diferentes.</div>
     </div>
   );
 }
