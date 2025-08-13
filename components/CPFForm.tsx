@@ -43,20 +43,19 @@ export const CPFForm: React.FC<CPFFormProps> = ({
         {/* Title */}
         <div className="text-center mb-6">
           <h1 className="text-xl font-semibold text-gray-900 mb-2">
-            Já é cliente? Informe seu CPF.
+            Informe seu CPF
           </h1>
         </div>
 
         {/* CPF Input */}
         <div className="space-y-2">
-          <label htmlFor="cpf" className="block text-sm font-medium text-gray-600 text-center">
-            Consulte ou adquira cupons de desconto
-          </label>
+          {/* Texto adicional removido por solicitação */}
           <input
             id="cpf"
-            type="tel"
-            inputMode="numeric"
-            pattern="[0-9]*"
+            type="tel" /* mantém teclado numérico em mobile */
+            inputMode="numeric" /* sugere teclado numérico em navegadores modernos */
+            /* Removido pattern="[0-9]*" pois a máscara adiciona '.' e '-' e causava pattern mismatch */
+            /* Se quiser validar via pattern com máscara, usar: pattern="\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}" */
             autoComplete="off"
             value={cpf}
             onChange={handleCpfChange}

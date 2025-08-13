@@ -1,3 +1,4 @@
+import React from 'react';
 import { Merchant, Reward } from '../lib/types';
 import CPFForm from './CPFForm';
 import RewardProgramCard from './RewardProgramCard';
@@ -12,17 +13,19 @@ interface WelcomeSectionProps {
 }
 
 export default function WelcomeSection({ merchant, onCPFSubmit, rewards = [], loading, error, onSelectReward }: WelcomeSectionProps) {
+  // Estado local simples para exibir/ocultar formulário
+  const [showForm, setShowForm] = React.useState(false);
   return (
     <div className="space-y-6">
       {/* Reward Programs (minimalist) */}
-      {rewards.length > 0 && (
+      {rewards.length > 0 && !showForm && (
         <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
           {rewards
-            .slice() // copia
+            .slice()
             .sort((a, b) => {
               const pa = typeof a.price === 'number' ? a.price : parseFloat(a.price || '0');
               const pb = typeof b.price === 'number' ? b.price : parseFloat(b.price || '0');
-              return pa - pb; // ordenar do mais barato para mais caro para cores
+              return pa - pb;
             })
             .map((r, i, arr) => (
               <RewardProgramCard
@@ -30,23 +33,38 @@ export default function WelcomeSection({ merchant, onCPFSubmit, rewards = [], lo
                 reward={r}
                 index={i}
                 total={arr.length}
-                onSelect={(rew) => onSelectReward && onSelectReward(rew, i)}
+                onSelect={(rew) => {
+                  setShowForm(true);
+                  onSelectReward && onSelectReward(rew, i);
+                }}
               />
             ))}
         </div>
       )}
 
-      {/* CPF Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
-        {/* CPF Form */}
+      {/* Botão para abrir formulário quando não escolheu reward */}
+      {!showForm && (
         <div className="max-w-sm mx-auto">
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          >
+            Ver meus Cupons
+          </button>
+        </div>
+      )}
+
+      {/* CPF Form */}
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 max-w-sm mx-auto">
           <CPFForm
             onSubmit={onCPFSubmit}
             loading={loading}
             error={error}
           />
         </div>
-      </div>
+      )}
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

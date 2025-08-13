@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useMerchant } from '../../hooks/useMerchant';
 import useDynamicFavicon from '../../hooks/useDynamicFavicon';
@@ -19,12 +19,43 @@ import QRCodeComponent from '../../components/QRCodeComponent';
 import MerchantHero from '../../components/MerchantHero';
 import WelcomeSection from '../../components/WelcomeSection';
 
+// Contador regressivo simples
+function Countdown({ target, className = '' }: { target: number; className?: string }) {
+  const [remaining, setRemaining] = useState(target - Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(target - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [target]);
+  if (remaining <= 0) return <span className={className + ' text-red-600'}>Expirado</span>;
+  const totalSec = Math.floor(remaining / 1000);
+  const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  return <span className={className}>Expira em {m}:{s}</span>;
+}
+
+function CopyPixButton({ code, className = '' }: { code: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      onClick={() => {
+        navigator.clipboard.writeText(code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      }}
+      className={`bg-teal-600 hover:bg-teal-700 focus:ring-teal-600 ${className}`}
+    >
+      {copied ? 'Copiado!' : 'Copiar código PIX'}
+    </Button>
+  );
+}
+
 export default function SlugPage() {
   const params = useParams();
   const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
 
   // Custom hooks for state management
   const { merchant, rewards, loading: merchantLoading, error: merchantError } = useMerchant(slug);
+  const [pendingRewardIndex, setPendingRewardIndex] = useState<number | null>(null);
   
   // Dynamic favicon based on merchant logo - using hook that worked before
   useDynamicFavicon(merchant ? slug : undefined);
@@ -49,7 +80,8 @@ export default function SlugPage() {
     loading: paymentLoading, 
     error: paymentError,
     handleBuyReward,
-    resetPayment 
+  resetPayment,
+  expiresAt
   } = usePayment();
 
   // Utility function to safely format price
@@ -96,12 +128,25 @@ export default function SlugPage() {
   }, [merchant]);
 
   async function handleRewardPurchase(reward: any, index: number) {
-    if (!user || !merchant) {
+    if (!merchant) return;
+    if (!user) {
+      setPendingRewardIndex(index);
       setStep("cpf");
       return;
     }
     await handleBuyReward(reward, user, merchant, index);
   }
+
+  // Após usuário avançar para resultado (email cadastrado) e existir reward pendente inicia compra
+  useEffect(() => {
+    if (user && merchant && pendingRewardIndex !== null && step === 'result') {
+      const reward = rewards[pendingRewardIndex];
+      if (reward) {
+        handleBuyReward(reward, user, merchant, pendingRewardIndex);
+        setPendingRewardIndex(null);
+      }
+    }
+  }, [user, merchant, pendingRewardIndex, step, rewards, handleBuyReward]);
 
   async function handleActivateCoupon(coupon: any) {
     if (!merchant) {
@@ -181,9 +226,80 @@ export default function SlugPage() {
 
       <main className={`flex-1 px-4 py-6 ${step === "cpf" ? "bg-slate-50" : ""}`}>
         <div className="max-w-md mx-auto space-y-8">
+          {/* Payment Section Inline */}
+          {paymentData && buyingReward && (
+            <div className="bg-white rounded-2xl shadow-sm border border-teal-200 p-6 space-y-6 animate-fade-in">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 mx-auto bg-teal-100 rounded-2xl flex items-center justify-center ring-4 ring-teal-50">
+                  <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Pagamento PIX</h2>
+                <p className="text-sm text-slate-600 leading-snug">{buyingReward.programName}</p>
+                <div className="text-3xl font-extrabold text-teal-600 drop-shadow-sm">R$ {formatPrice(buyingReward.price)}</div>
+                <p className="text-xs text-slate-500">Valor único. Após confirmação seu(s) cupom(ns) serão liberados.</p>
+                {expiresAt && (
+                  <Countdown target={expiresAt} className="text-xs font-medium text-teal-700" />
+                )}
+              </div>
+
+              {paymentError ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm" role="alert">{paymentError}</p>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="bg-gradient-to-br from-teal-50 to-teal-100/60 border border-teal-200 rounded-xl p-4 text-center">
+                    <h3 className="font-semibold text-teal-800 mb-3 text-sm">QR Code PIX</h3>
+                    <div className="flex justify-center mb-2">
+                      <div className="p-2 rounded-xl bg-white shadow-inner animate-pulse-slow">
+                        <QRCodeComponent
+                        value={paymentData.pixCopiaECola}
+                        size={180}
+                        alt="QR Code PIX"
+                        className="w-full h-auto max-w-[180px]"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-teal-700">Escaneie com o app do seu banco</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-slate-800 text-sm">PIX Copia e Cola</h3>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(paymentData.pixCopiaECola)}
+                        className="text-teal-600 hover:text-teal-700 text-xs font-medium"
+                        type="button"
+                      >Copiar</button>
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-700 break-all bg-white p-3 rounded-lg border border-slate-200 max-h-32 overflow-y-auto">
+                      {paymentData.pixCopiaECola}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-2">Copie e cole no app do banco se preferir.</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <CopyPixButton code={paymentData.pixCopiaECola} className="flex-1" />
+                <Button
+                  onClick={() => {
+                    resetPayment();
+                    setPendingRewardIndex(null);
+                    setStep(user ? 'result' : 'cpf');
+                  }}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  Voltar
+                </Button>
+              </div>
+            </div>
+          )}
           
           {/* CPF Form Step - New Welcome Section */}
-          {step === "cpf" && merchant && (
+          {!paymentData && step === "cpf" && merchant && (
             <WelcomeSection
               merchant={merchant}
               rewards={rewards}
@@ -195,7 +311,7 @@ export default function SlugPage() {
           )}
 
           {/* Email Form Step */}
-          {step === "email" && (
+          {!paymentData && step === "email" && (
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
               <EmailForm
                 cpf={user?.cpf || ""}
@@ -208,7 +324,7 @@ export default function SlugPage() {
           )}
 
           {/* Results Step - User Coupons */}
-          {step === "result" && user && (
+          {!paymentData && step === "result" && user && (
             <div className="space-y-6">
               {/* Welcome section */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -278,97 +394,7 @@ export default function SlugPage() {
         </div>
       </main>
 
-      {/* Payment Modal */}
-      {paymentData && buyingReward && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-2">
-                  Pagamento PIX
-                </h2>
-                <p className="text-slate-600 mb-2">
-                  {buyingReward.programName}
-                </p>
-                <div className="text-2xl font-bold text-orange-600">
-                  R$ {formatPrice(buyingReward.price)}
-                </div>
-              </div>
-
-              {paymentError ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                  <p className="text-red-700 text-sm">
-                    {paymentError}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4 mb-6">
-                  <div className="bg-slate-50 rounded-lg p-4 text-center">
-                    <h3 className="font-semibold text-slate-900 mb-4">QR Code PIX</h3>
-                    <div className="flex justify-center">
-                      <QRCodeComponent 
-                        value={paymentData.pixCopiaECola}
-                        size={200}
-                        alt="QR Code PIX"
-                        className="max-w-xs w-full h-auto"
-                      />
-                    </div>
-                    <p className="text-sm text-slate-600 mt-2">
-                      Escaneie o código com seu app do banco
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-slate-900 mb-2">PIX Copia e Cola</h3>
-                    <div className="text-xs font-mono text-slate-700 break-all bg-white p-3 rounded border relative">
-                      {paymentData.pixCopiaECola}
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(paymentData.pixCopiaECola);
-                          // Você pode adicionar um toast aqui se quiser
-                        }}
-                        className="absolute top-2 right-2 text-slate-500 hover:text-slate-700 p-1 rounded"
-                        title="Copiar código PIX"
-                      >
-                        📋
-                      </button>
-                    </div>
-                    <p className="text-sm text-slate-600 mt-2">
-                      Ou copie e cole o código no seu app do banco
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={resetPayment}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  Fechar
-                </Button>
-                {!paymentError && (
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(paymentData.pixCopiaECola);
-                      // TODO: Show toast notification
-                    }}
-                    className="flex-1"
-                  >
-                    Copiar PIX
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  {/* (Modal removido - agora seção inline) */}
 
       <FooterBar />
     </div>
