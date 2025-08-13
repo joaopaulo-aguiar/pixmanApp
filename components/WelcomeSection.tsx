@@ -1,18 +1,43 @@
-import { Merchant } from '../lib/types';
+import { Merchant, Reward } from '../lib/types';
 import CPFForm from './CPFForm';
+import RewardProgramCard from './RewardProgramCard';
 
 interface WelcomeSectionProps {
   merchant: Merchant;
   onCPFSubmit: (cpf: string) => void;
+  rewards?: Reward[];
   loading?: boolean;
   error?: string;
+  onSelectReward?: (reward: Reward, index: number) => void;
 }
 
-export default function WelcomeSection({ merchant, onCPFSubmit, loading, error }: WelcomeSectionProps) {
+export default function WelcomeSection({ merchant, onCPFSubmit, rewards = [], loading, error, onSelectReward }: WelcomeSectionProps) {
   return (
     <div className="space-y-6">
-      {/* Welcome Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+      {/* Reward Programs (minimalist) */}
+      {rewards.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
+          {rewards
+            .slice() // copia
+            .sort((a, b) => {
+              const pa = typeof a.price === 'number' ? a.price : parseFloat(a.price || '0');
+              const pb = typeof b.price === 'number' ? b.price : parseFloat(b.price || '0');
+              return pa - pb; // ordenar do mais barato para mais caro para cores
+            })
+            .map((r, i, arr) => (
+              <RewardProgramCard
+                key={r.SK || i}
+                reward={r}
+                index={i}
+                total={arr.length}
+                onSelect={(rew) => onSelectReward && onSelectReward(rew, i)}
+              />
+            ))}
+        </div>
+      )}
+
+      {/* CPF Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
         {/* CPF Form */}
         <div className="max-w-sm mx-auto">
           <CPFForm

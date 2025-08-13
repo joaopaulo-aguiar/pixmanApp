@@ -186,9 +186,11 @@ export default function SlugPage() {
           {step === "cpf" && merchant && (
             <WelcomeSection
               merchant={merchant}
+              rewards={rewards}
               onCPFSubmit={handleCPFSubmit}
               loading={userLoading}
               error={userError}
+              onSelectReward={(reward, index) => handleRewardPurchase(reward, index)}
             />
           )}
 

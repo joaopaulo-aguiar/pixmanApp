@@ -31,7 +31,7 @@ export default function MerchantHero({ merchant }: MerchantHeroProps) {
       </div>
 
       <div className="absolute left-1/2 transform -translate-x-1/2 top-20 translate-y-1/2 z-10">
-        <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full bg-white shadow-2xl p-1 border-2 border-white">
+        <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full bg-white/80 backdrop-blur-sm shadow-2xl p-[2px] border border-white/60">
           <img 
             src={logoImage} 
             alt={`Logo ${merchant.displayName}`}

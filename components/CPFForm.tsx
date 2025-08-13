@@ -18,7 +18,9 @@ export const CPFForm: React.FC<CPFFormProps> = ({
   const [touched, setTouched] = useState(false);
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const maskedValue = maskCPF(e.target.value);
+    // Mantém apenas dígitos
+    const raw = e.target.value.replace(/\D/g, '');
+    const maskedValue = maskCPF(raw);
     setCpf(maskedValue);
     if (!touched) setTouched(true);
   };
@@ -30,37 +32,48 @@ export const CPFForm: React.FC<CPFFormProps> = ({
     }
   };
 
-  const isValid = isCpfValid(cpf);
-  const showError = touched && !isValid && cpf.length > 0;
+  const rawDigits = cpf.replace(/\D/g, '');
+  const hasFullLength = rawDigits.length === 11; // CPF completo
+  const isValidFull = hasFullLength && isCpfValid(cpf);
+  const showError = hasFullLength && !isValidFull; // só mostra erro quando completou e é inválido
 
   return (
     <div className={`w-full max-w-md mx-auto ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-            Informe seu CPF
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+            Já é cliente? Informe seu CPF.
           </h1>
         </div>
 
         {/* CPF Input */}
         <div className="space-y-2">
-          <label htmlFor="cpf" className="block text-lg font-medium text-gray-700 text-center">
-            Para verificar ou adquirir cupons de desconto
+          <label htmlFor="cpf" className="block text-sm font-medium text-gray-600 text-center">
+            Consulte ou adquira cupons de desconto
           </label>
           <input
             id="cpf"
-            type="text"
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
             value={cpf}
             onChange={handleCpfChange}
+            onKeyDown={(e) => {
+              // Bloqueia caracteres não numéricos (exceto controle)
+              if (!/[0-9]/.test(e.key) && !['Backspace','Tab','ArrowLeft','ArrowRight','Delete','Home','End'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             placeholder="000.000.000-00"
             maxLength={14}
-            className={`w-full px-4 py-4 text-lg text-center border-2 rounded-lg focus:outline-none transition-all duration-200 bg-white placeholder-gray-500 ${
-              showError 
-                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500' 
-                : isValid && touched
+            className={`w-full px-4 py-4 text-lg text-center tracking-wider border-2 rounded-lg focus:outline-none transition-all duration-200 bg-white placeholder-gray-500 ${
+              showError
+                ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                : isValidFull
                 ? 'border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-500'
-                : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500'
+                : 'border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500'
             }`}
             aria-label="Campo de CPF"
             aria-describedby={showError ? "cpf-error" : undefined}
@@ -74,7 +87,7 @@ export const CPFForm: React.FC<CPFFormProps> = ({
             </p>
           )}
           
-          {isValid && touched && (
+          {isValidFull && (
             <p className="text-sm text-green-600">
               ✓ CPF válido
             </p>
@@ -93,7 +106,7 @@ export const CPFForm: React.FC<CPFFormProps> = ({
         {/* Submit button */}
         <button
           type="submit"
-          disabled={loading || !isValid}
+          disabled={loading || !isValidFull}
           className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-base min-h-[48px] flex items-center justify-center"
         >
           {loading ? (
