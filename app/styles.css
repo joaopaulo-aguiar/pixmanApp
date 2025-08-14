@@ -39,3 +39,32 @@ body {
 .animate-pulse-slow {
   animation: pulseSlow 3s ease-in-out infinite;
 }
+
+/* Flip animation for coupon activation */
+.flip-container {
+  perspective: 1200px;
+  position: relative;
+}
+.flipper {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(.68,-0.3,.32,1.3);
+  will-change: transform;
+}
+
+/* Smooth height animation wrapper */
+.flip-height-wrapper {
+  position: relative;
+  transition: height .35s ease;
+}
+.flip-container.flipped .flipper {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  position: relative;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
