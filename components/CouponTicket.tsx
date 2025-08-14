@@ -87,11 +87,10 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
   }
 
   return (
-    <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm p-3 overflow-hidden">
-      <div className="relative" style={{perspective: '1200px'}}>
+    <div className="relative" style={{perspective: '1200px'}}>
         {/* FRONT (fica no fluxo para altura) */}
         <div
-          className={`${ticketColor} rounded-xl px-4 pt-4 pb-3 text-white shadow-sm overflow-hidden flex flex-col transition-transform duration-[900ms] [transform-style:preserve-3d]`}
+          className={`${ticketColor} rounded-2xl px-4 pt-4 pb-3 text-white shadow-sm overflow-hidden flex flex-col transition-transform duration-[900ms] [transform-style:preserve-3d]`}
           style={{transform: showActivationBack ? 'rotateY(180deg)' : 'rotateY(0deg)', backfaceVisibility: 'hidden'}}
         >
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0))]"></div>
@@ -171,7 +170,7 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
         </div>
         {/* BACK (absolute sobrepõe) */}
         <div
-          className={`${ticketColor} rounded-xl px-4 pt-4 pb-3 text-white shadow-sm overflow-hidden flex flex-col justify-between absolute inset-0 transition-transform duration-[900ms] [transform-style:preserve-3d]`}
+          className={`${ticketColor} rounded-2xl px-4 pt-2 pb-10 text-white shadow-sm overflow-hidden flex flex-col absolute inset-0 transition-transform duration-[900ms] [transform-style:preserve-3d]`}
           style={{transform: showActivationBack ? 'rotateY(0deg)' : 'rotateY(-180deg)', backfaceVisibility: 'hidden'}}
         >
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0))]"></div>
@@ -180,7 +179,7 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
             <span className="text-[10px] uppercase font-semibold tracking-wide text-white/70 mb-2">Ativar Cupom</span>
             <p className="text-[11px] leading-relaxed text-white/90">Ao ativar este cupom ele deverá ser utilizado hoje. Após 23:59 ele expira. Deseja continuar?</p>
           </div>
-          <div className="relative flex gap-2 mt-4 pt-2">
+          <div className="relative flex gap-2 mt-2 pt-2">
             <button onClick={cancelActivate} className="flex-1 bg-white/15 hover:bg-white/25 text-white/90 text-xs font-medium rounded-md py-2 transition-colors">Cancelar</button>
             <button onClick={confirmActivate} disabled={isActivating} className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white text-xs font-semibold rounded-md py-2 transition-colors inline-flex items-center justify-center gap-1">
               {isActivating && <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
@@ -188,8 +187,7 @@ export const CouponTicket: React.FC<CouponTicketProps> = ({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+  </div>
   );
 };
 
