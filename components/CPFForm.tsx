@@ -60,8 +60,9 @@ export const CPFForm: React.FC<CPFFormProps> = ({
             value={cpf}
             onChange={handleCpfChange}
             onKeyDown={(e) => {
-              // Bloqueia caracteres não numéricos (exceto controle)
-              if (!/[0-9]/.test(e.key) && !['Backspace','Tab','ArrowLeft','ArrowRight','Delete','Home','End'].includes(e.key)) {
+              // Permite Enter para submeter; bloqueia apenas teclas não numéricas fora da lista
+              const allowed = ['Backspace','Tab','ArrowLeft','ArrowRight','Delete','Home','End','Enter'];
+              if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
                 e.preventDefault();
               }
             }}

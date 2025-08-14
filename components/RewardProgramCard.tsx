@@ -46,7 +46,7 @@ export default function RewardProgramCard({ reward, index, total, onSelect }: Re
           {/* Borda tracejada interna levemente inset */}
           <div className="absolute inset-1 rounded-lg border-2 border-dashed border-white/70 pointer-events-none"></div>
           <div className="text-[10px] uppercase tracking-wide font-semibold text-white/90 mb-1">CUPOM</div>
-          <div className="text-[18px] font-extrabold leading-none mb-2 drop-shadow-sm">
+          <div className="text-[16px] font-extrabold leading-tight mb-2 drop-shadow-sm">
             {reward.reward}
           </div>
           <div className="text-[11px] leading-snug font-normal text-white/95 mx-auto max-w-[180px]">

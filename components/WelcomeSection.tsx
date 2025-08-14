@@ -48,7 +48,7 @@ export default function WelcomeSection({ merchant, onCPFSubmit, rewards = [], lo
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+            className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-4 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 focus:ring-offset-2"
           >
             Ver meus Cupons
           </button>
