@@ -33,6 +33,11 @@ export const config = {
     maxAttempts: 3,
     baseDelay: 1000, // 1 second
   },
+  cache: {
+    // TTL padrão para cache de queries GraphQL (em ms)
+    graphqlTTL: 30000, // 30s – ajuste conforme necessidade
+    enabled: true,
+  },
 } as const;
 
 export default config;
