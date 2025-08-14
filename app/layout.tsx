@@ -4,15 +4,7 @@ import "./styles.css";
 export const metadata: Metadata = {
   title: "Pixman",
   description: "Site responsivo para acesso via QR Code.",
-  icons: {
-    icon: [
-      {
-        url: "/favicon.jpg",
-        type: "image/jpeg",
-      }
-    ],
-    apple: "/favicon.jpg",
-  },
+  // Removido favicon padrão para não ocorrer flash de fallback
 };
 
 export default function RootLayout({

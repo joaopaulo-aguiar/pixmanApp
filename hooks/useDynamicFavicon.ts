@@ -9,8 +9,7 @@ const useDynamicFavicon = (merchantSlug?: string) => {
     console.log('useDynamicFavicon - merchantSlug:', merchantSlug);
     
     if (!merchantSlug) {
-      console.log('useDynamicFavicon - No slug, using default favicon');
-      updateFavicon('/favicon.jpg');
+      // Não carrega favicon de fallback para evitar flash; deixa o existente (ou nenhum)
       return;
     }
 
@@ -23,7 +22,7 @@ const useDynamicFavicon = (merchantSlug?: string) => {
 
     // Cleanup function to reset favicon when component unmounts
     return () => {
-      updateFavicon('/favicon.jpg');
+      // Não restaura fallback para evitar carregamento extra
     };
   }, [merchantSlug]);
 };
@@ -45,12 +44,9 @@ const updateFavicon = (iconUrl: string) => {
   link.type = 'image/x-icon';
   link.href = iconUrl;
   
-  // Add error handling for failed favicon loads
+  // Add error handling for failed favicon loads (não tenta fallback para evitar flash)
   link.onerror = () => {
-    console.warn(`Failed to load favicon from ${iconUrl}, falling back to default`);
-    if (iconUrl !== '/favicon.jpg') {
-      updateFavicon('/favicon.jpg');
-    }
+    console.warn(`Failed to load favicon from ${iconUrl}`);
   };
 
   link.onload = () => {

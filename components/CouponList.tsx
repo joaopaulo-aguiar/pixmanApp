@@ -153,7 +153,7 @@ export const CouponList: React.FC<CouponListProps> = ({
       {/* Purchase cards only for programs the user has zero coupons */}
       {purchasablePrograms.length > 0 && onPurchaseMore && (
         <div className="pt-4 border-t border-slate-200">
-          <h4 className="text-sm font-semibold text-slate-700 mb-3">Outros cupons disponíveis</h4>
+          <h4 className="text-sm font-semibold text-slate-700 mb-3">Cupons disponíveis</h4>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {purchasablePrograms.map((reward, idx) => (
               <RewardProgramCard
