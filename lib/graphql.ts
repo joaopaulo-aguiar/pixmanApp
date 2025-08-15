@@ -79,6 +79,25 @@ export const ACTIVATE_COUPON = `
   }
 `;
 
+// PIX Payment status (query name may differ; using getPixPaymentStatus with txid variable)
+export const GET_PIX_PAYMENT_STATUS = `
+  query getPixPaymentStatus($txid: String!) {
+    getPixPaymentStatus(txid: $txid) {
+      horario
+      infoPagador
+      status
+    }
+  }
+`;
+
+export interface PixPaymentStatusResponse {
+  getPixPaymentStatus: {
+    horario: string;
+    infoPagador?: string;
+    status: string; // e.g., CONCLUIDO, PENDENTE
+  };
+}
+
 // Input types for TypeScript
 export interface ListUserCouponsInput {
   cpf: string;

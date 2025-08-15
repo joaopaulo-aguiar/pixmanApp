@@ -80,9 +80,65 @@ export default function SlugPage() {
     loading: paymentLoading, 
     error: paymentError,
     handleBuyReward,
-  resetPayment,
-  expiresAt
+    resetPayment,
+    expiresAt,
+    txid,
+    verifyPayment,
   } = usePayment();
+  // Cooldown para botão "Confirmar pagamento"
+  const [confirmCooldown, setConfirmCooldown] = useState(0);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [initialCouponsCount, setInitialCouponsCount] = useState<number | null>(null);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'copied'>('idle');
+  useEffect(() => {
+    if (confirmCooldown <= 0) return;
+    const id = setInterval(() => setConfirmCooldown(c => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [confirmCooldown]);
+
+  async function handleConfirmPayment() {
+    if (confirmCooldown > 0) return;
+    if (confirmLoading) return;
+    try {
+      setConfirmLoading(true);
+      console.log('🔎 Verificando pagamento via GraphQL...');
+      const status = await verifyPayment();
+      console.log('Status PIX recebido:', status);
+      // Detecta status de sucesso com variações (CONCLUIDA, CONCLUIDO, LIQUIDADO, PAID, etc.)
+      if (status && /concluid[oa]?|concluíd[oa]?|liquidad[oa]?|approved|success|completed|paid/i.test(status)) {
+        setPaymentConfirmed(true);
+      }
+      if (user && merchant) {
+        // Uma única atualização de cupons por clique
+        await fetchUserCoupons(user.cpf, merchant.slug);
+      }
+      setConfirmCooldown(10);
+    } finally {
+      setConfirmLoading(false);
+    }
+  }
+
+  // Armazena quantidade inicial de cupons ao entrar na tela de pagamento
+  useEffect(() => {
+    if (paymentData && buyingReward && initialCouponsCount === null) {
+      setInitialCouponsCount(coupons.length);
+    }
+    // Reset quando sai
+    if (!paymentData && initialCouponsCount !== null) {
+      setInitialCouponsCount(null);
+    }
+  }, [paymentData, buyingReward, coupons.length, initialCouponsCount]);
+
+  // Fecha automaticamente quando detectar novos cupons (quantidade aumentou)
+  useEffect(() => {
+    if (paymentData && buyingReward && initialCouponsCount !== null && coupons.length > initialCouponsCount) {
+      console.log('✅ Novos cupons detectados, fechando seção de pagamento.');
+      resetPayment();
+      setPendingRewardIndex(null);
+      setStep('result');
+    }
+  }, [coupons.length, paymentData, buyingReward, initialCouponsCount, resetPayment, setStep]);
 
   // Utility function to safely format price
   const formatPrice = (price: any): string => {
@@ -236,9 +292,25 @@ export default function SlugPage() {
                   </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Pagamento PIX</h2>
-                <p className="text-sm text-slate-600 leading-snug">{buyingReward.programName}</p>
+                {/* Ênfase na quantidade de cupons */}
+                <div className="space-y-1">
+                  <div className="text-lg font-semibold text-teal-700">
+                    {(() => {
+                      const qtyNum = Number(buyingReward.quantity) || 0;
+                      if (qtyNum > 0) {
+                        return `${qtyNum} ${qtyNum > 1 ? 'cupons' : 'cupom'}`;
+                      }
+                      return 'Cupom';
+                    })()} de {buyingReward.reward?.match(/R\$\s?\d+[\.,]\d{2}/)?.[0] || buyingReward.reward}
+                  </div>
+                  <div className="text-[11px] text-slate-500 max-w-sm mx-auto leading-snug">
+                    {buyingReward.programRule}
+                  </div>
+                </div>
                 <div className="text-3xl font-extrabold text-teal-600 drop-shadow-sm">R$ {formatPrice(buyingReward.price)}</div>
-                <p className="text-xs text-slate-500">Valor único. Após confirmação seu(s) cupom(ns) serão liberados.</p>
+                <p className="text-[11px] text-slate-500">
+                  {paymentConfirmed ? 'Pagamento confirmado! Seus cupons serão liberados em instantes.' : 'Pagamento único via PIX. Seus cupons serão liberados logo após a confirmação.'}
+                </p>
                 {expiresAt && (
                   <Countdown target={expiresAt} className="text-xs font-medium text-teal-700" />
                 )}
@@ -268,10 +340,26 @@ export default function SlugPage() {
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-slate-800 text-sm">PIX Copia e Cola</h3>
                       <button
-                        onClick={() => navigator.clipboard.writeText(paymentData.pixCopiaECola)}
-                        className="text-teal-600 hover:text-teal-700 text-xs font-medium"
+                        onClick={async () => {
+                          if (copyState === 'copying') return;
+                          setCopyState('copying');
+                          try {
+                            await navigator.clipboard.writeText(paymentData.pixCopiaECola);
+                            // Pequena pausa para mostrar estado "Copiando..."
+                            setTimeout(() => {
+                              setCopyState('copied');
+                              setTimeout(() => setCopyState('idle'), 5000);
+                            }, 400);
+                          } catch {
+                            setCopyState('idle');
+                          }
+                        }}
+                        className="text-teal-600 hover:text-teal-700 text-xs font-medium flex items-center gap-1"
                         type="button"
-                      >Copiar</button>
+                      >
+                        {copyState === 'copying' && <span className="inline-block w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />}
+                        {copyState === 'copied' ? 'Copiado!' : (copyState === 'copying' ? 'Copiando...' : 'Copiar')}
+                      </button>
                     </div>
                     <div className="text-[10px] font-mono text-slate-700 break-all bg-white p-3 rounded-lg border border-slate-200 max-h-32 overflow-y-auto">
                       {paymentData.pixCopiaECola}
@@ -280,9 +368,32 @@ export default function SlugPage() {
                   </div>
                 </div>
               )}
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <CopyPixButton code={paymentData.pixCopiaECola} className="flex-1" />
+              {/* Texto explicativo */}
+              <div className={`bg-teal-50 border ${paymentConfirmed ? 'border-teal-300' : 'border-teal-100'} rounded-lg p-3 text-[11px] text-teal-700 leading-relaxed`}>
+                {paymentConfirmed
+                  ? 'Pagamento identificado! Atualizando seus cupons. Caso não apareçam em alguns segundos, você pode tentar novamente a verificação.'
+                  : 'A confirmação do pagamento é feita automaticamente em poucos instantes. Assim que identificado, os cupons aparecerão na sua lista e também enviaremos uma cópia por e-mail. Caso queira, você pode pressionar "Confirmar pagamento" para forçar uma nova verificação.'}
+              </div>
+              <div className="flex flex-col gap-3 pt-1">
+                <Button
+                  onClick={handleConfirmPayment}
+                  disabled={confirmCooldown > 0 || confirmLoading || paymentConfirmed}
+                  className={`w-full ${paymentConfirmed ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                >
+                  {confirmLoading && !paymentConfirmed && (
+                    <span className="inline-block w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin"></span>
+                  )}
+                  {!confirmLoading && confirmCooldown > 0 && !paymentConfirmed && (
+                    <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                  )}
+                  {paymentConfirmed
+                    ? 'Pagamento confirmado'
+                    : confirmLoading
+                      ? 'Verificando...'
+                      : confirmCooldown > 0
+                        ? `Tentar novamente em ${confirmCooldown}s`
+                        : 'Confirmar pagamento'}
+                </Button>
                 <Button
                   onClick={() => {
                     resetPayment();
@@ -290,7 +401,7 @@ export default function SlugPage() {
                     setStep(user ? 'result' : 'cpf');
                   }}
                   variant="secondary"
-                  className="flex-1"
+                  className="w-full"
                 >
                   Voltar
                 </Button>

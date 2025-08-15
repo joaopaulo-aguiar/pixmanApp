@@ -7,6 +7,8 @@ import {
   CREATE_USER,
   LIST_USER_COUPONS,
   ACTIVATE_COUPON,
+  GET_PIX_PAYMENT_STATUS,
+  type PixPaymentStatusResponse,
   type ListUserCouponsInput,
   type CreateUserInput,
   type ActivateCouponInput,
@@ -264,6 +266,23 @@ export const paymentService = {
       }
       
       throw new ApiError('Payment unknown error', 'API');
+    }
+  },
+  /**
+   * Check PIX payment status by txid (GraphQL)
+   */
+  async getPixPaymentStatus(txid: string): Promise<PixPaymentStatusResponse['getPixPaymentStatus']> {
+    try {
+      const result = await graphqlClient.requestWithRetry<PixPaymentStatusResponse>(GET_PIX_PAYMENT_STATUS, { txid });
+      if (!result.getPixPaymentStatus) {
+        throw new ApiError('Payment status not found', 'API', '404');
+      }
+      return result.getPixPaymentStatus;
+    } catch (error) {
+      if (error instanceof GraphQLError) {
+        throw new ApiError(error.message, error.type, error.code, error.details);
+      }
+      throw error;
     }
   },
 };
